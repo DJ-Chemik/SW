@@ -1,7 +1,7 @@
 import pygame, sys, os, time
 from pygame.locals import *
 
-WID, HEI, SIZE = 800, 600, 25 # window params
+WID, HEI, SIZE = 480, 320, 10 # window params
 C_BLACK, C_WHITE = (0, 0, 0), (255, 255, 255) # colors
 UP, LEFT, DOWN, RIGHT = 0, 1, 2, 3 # directions
 
@@ -78,6 +78,6 @@ while True:
     window.fill(C_BLACK)
     snake.drawAndUpdate(cur_dir)
     pygame.display.update()
-    clock.tick(30)
+    clock.tick(10)
 
     
