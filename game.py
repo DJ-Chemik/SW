@@ -1,3 +1,5 @@
+import random
+
 import pygame, sys, os, time
 from pygame.locals import *
 
@@ -17,6 +19,14 @@ C_WHITE = (255, 255, 255)
 # directions
 UP, LEFT, DOWN, RIGHT = 0, 1, 2, 3
 
+# game control
+SNAKE_UP = K_UP
+SNAKE_DOWN = K_DOWN
+SNAKE_LEFT = K_LEFT
+SNAKE_RIGHT = K_RIGHT
+ADD_SEGMENT_TO_SNAKE = K_SPACE
+ADD_NEW_FOOD = K_c
+
 X_SIZE = WID / SIZE
 Y_SIZE = HEI / SIZE
 
@@ -28,8 +38,8 @@ class Segment:
         self.y = y * SIZE
         self.dir = dir
 
-    def draw(self):
-        pygame.draw.rect(window, C_WHITE, (self.x, self.y, SIZE, SIZE))
+    def draw(self, color=C_WHITE):
+        pygame.draw.rect(window, color, (self.x, self.y, SIZE, SIZE))
 
     def update(self):
         if self.dir == UP:
@@ -38,8 +48,10 @@ class Segment:
             self.x -= SIZE
         elif self.dir == DOWN:
             self.y += SIZE
-        else:
+        elif self.dir == RIGHT:
             self.x += SIZE
+        else:
+            None
 
 
 # Whole snake
@@ -75,6 +87,18 @@ class Snake:
             seg.update()
             seg.dir, dir = dir, seg.dir
 
+# Food
+class Food:
+    def __init__(self):
+        super().__init__()
+        xPosition = random.randint(0,23)
+        yPosition = random.randint(0,15)
+        self.segments = [Segment(xPosition, yPosition, None)]
+
+    def drawAndUpdate(self):
+        for seg in self.segments:
+            seg.draw(C_RED)
+
 
 # Events handling
 def input(events):
@@ -83,20 +107,23 @@ def input(events):
         if event.type == QUIT:
             sys.exit(0)
         elif event.type == KEYDOWN:
-            if event.key == K_UP:
+            if event.key == SNAKE_UP:
                 if cur_dir != DOWN:
                     cur_dir = UP
-            elif event.key == K_LEFT:
+            elif event.key == SNAKE_LEFT:
                 if cur_dir != RIGHT:
                     cur_dir = LEFT
-            elif event.key == K_DOWN:
+            elif event.key == SNAKE_DOWN:
                 if cur_dir != UP:
                     cur_dir = DOWN
-            elif event.key == K_RIGHT:
+            elif event.key == SNAKE_RIGHT:
                 if cur_dir != LEFT:
                     cur_dir = RIGHT
-            elif event.key == K_SPACE:
+            elif event.key == ADD_SEGMENT_TO_SNAKE:
                 snake.addSegment()
+            elif event.key == ADD_NEW_FOOD:
+                foods.append(Food())
+
 
 
 
@@ -108,6 +135,7 @@ pygame.display.set_caption('Snake')
 
 snake = Snake()
 cur_dir = LEFT
+foods = []
 
 # Main loop
 while True:
@@ -115,6 +143,8 @@ while True:
 
     window.fill(C_BLACK)
     snake.drawAndUpdate(cur_dir)
+    for food in foods:
+        food.drawAndUpdate()
     pygame.display.update()
     clock.tick(GAME_SPEED)
 
