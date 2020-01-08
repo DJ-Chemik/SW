@@ -1,5 +1,4 @@
 import random
-
 import pygame, sys, os, time
 from pygame.locals import *
 
@@ -7,7 +6,7 @@ from pygame.locals import *
 WID = 480
 HEI = 320
 SIZE = 20
-GAME_SPEED = 8
+GAME_SPEED = 10
 
 # colors
 C_BLACK = (0, 0, 0)
@@ -34,6 +33,8 @@ Y_SIZE = HEI / SIZE
 class Segment:
     def __init__(self, x: int, y: int, dir: int):
         super().__init__()
+        self.Xpos = x
+        self.Ypos = y
         self.x = x * SIZE
         self.y = y * SIZE
         self.dir = dir
@@ -42,6 +43,8 @@ class Segment:
         pygame.draw.rect(window, color, (self.x, self.y, SIZE, SIZE))
 
     def update(self):
+        self.Xpos = self.x//SIZE
+        self.Ypos = self.y//SIZE
         if self.dir == UP:
             self.y -= SIZE
         elif self.dir == LEFT:
@@ -53,7 +56,6 @@ class Segment:
         else:
             None
 
-
 # Whole snake
 class Snake:
 
@@ -61,6 +63,11 @@ class Snake:
         super().__init__()
         self.segments = [Segment(X_SIZE // 2 - 1, Y_SIZE // 2, LEFT),
                          Segment(X_SIZE // 2, Y_SIZE // 2, LEFT)]
+        self.head = self.segments[0]
+        self.tail = self.segments[-1]
+        self.readyToAddSegment = True
+        self.lockedHeadX = None
+        self.lockedHeadY = None
 
 
     def addSegment(self):
@@ -81,24 +88,42 @@ class Snake:
             self.segments.append(Segment(x, y-1, direction))
 
 
+    def detectFood(self):
+        for food in foods:
+            if self.head.Xpos == food.xPosition and self.head.Ypos == food.yPosition:
+                self.addSegment()
+                foods.remove(food)
+                self.lockedHeadX = self.head.Xpos #Dopiero gdy to przestanie być prawdziwe będzie mogła zostać zdjęta blokada
+                self.lockedHeadY = self.head.Ypos #czyli gdy snake przemieści się o 1 pole
+                self.readyToAddSegment = False #Założenie blokady
+
+    def deleteLockInFlag(self):
+        if self.head.Xpos != self.lockedHeadX:
+            if self.head.Ypos != self.lockedHeadY:
+                self.readyToAddSegment = True
+
     def drawAndUpdate(self, dir: int):
         for seg in self.segments:
+            self.deleteLockInFlag()
             seg.draw()
             seg.update()
             seg.dir, dir = dir, seg.dir
+            self.tail = self.segments[-1]
+            self.head = self.segments[0]
+            if self.readyToAddSegment:
+                self.detectFood()
 
 # Food
 class Food:
     def __init__(self):
         super().__init__()
-        xPosition = random.randint(0,23)
-        yPosition = random.randint(0,15)
-        self.segments = [Segment(xPosition, yPosition, None)]
+        self.xPosition = random.randint(0,23)
+        self.yPosition = random.randint(0,15)
+        self.segments = [Segment(self.xPosition, self.yPosition, None)]
 
     def drawAndUpdate(self):
         for seg in self.segments:
             seg.draw(C_RED)
-
 
 # Events handling
 def input(events):
@@ -124,8 +149,12 @@ def input(events):
             elif event.key == ADD_NEW_FOOD:
                 foods.append(Food())
 
-
-
+def drawGameWindow():
+    window.fill(C_BLACK)
+    for food in foods:
+        food.drawAndUpdate()
+    snake.drawAndUpdate(cur_dir)
+    pygame.display.update()
 
 # MAIN
 pygame.init()
@@ -140,11 +169,6 @@ foods = []
 # Main loop
 while True:
     input(pygame.event.get())
-
-    window.fill(C_BLACK)
-    snake.drawAndUpdate(cur_dir)
-    for food in foods:
-        food.drawAndUpdate()
-    pygame.display.update()
+    drawGameWindow()
     clock.tick(GAME_SPEED)
 
