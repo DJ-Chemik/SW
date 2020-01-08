@@ -1,5 +1,7 @@
 import random
 import pygame, sys, os, time
+import tkinter as tk
+from tkinter import messagebox
 from pygame.locals import *
 
 # window params
@@ -102,6 +104,12 @@ class Snake:
         elif direction == DOWN:
             self.segments.append(Segment(x, y-1, direction))
 
+    def detectCollision(self):
+        for seg in self.segments:
+            if self.head.Xpos==seg.Xpos and self.head.Ypos==seg.Ypos and seg!=self.segments[0]:
+                displayMessageBox("Game Over", "You hit in your own tail :( Mission Failed Bro!")
+                global continueGame
+                continueGame=False
 
     def detectFood(self):
         for food in foods:
@@ -125,6 +133,7 @@ class Snake:
             self.tail = self.segments[-1]
             self.head = self.segments[0]
         self.deleteLockInFlag()
+        self.detectCollision()
         if self.readyToAddSegment:
             self.detectFood()
 
@@ -171,6 +180,16 @@ def drawGameWindow():
     snake.drawAndUpdate(cur_dir)
     pygame.display.update()
 
+def displayMessageBox(subject, content):
+    root = tk.Tk()
+    root.attributes("-topmost", True)
+    root.withdraw()
+    messagebox.showinfo(subject, content)
+    try:
+        root.destroy()
+    except:
+        pass
+
 # MAIN
 pygame.init()
 window = pygame.display.set_mode((WID, HEI))
@@ -181,8 +200,10 @@ snake = Snake()
 cur_dir = LEFT
 foods = []
 
+continueGame = True
+
 # Main loop
-while True:
+while continueGame:
     input(pygame.event.get())
     drawGameWindow()
     clock.tick(GAME_SPEED)
