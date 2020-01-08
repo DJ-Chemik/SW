@@ -29,14 +29,18 @@ ADD_NEW_FOOD = K_c
 X_SIZE = WID / SIZE
 Y_SIZE = HEI / SIZE
 
+maxX = 23
+maxY=15
+
 # One snake segment
 class Segment:
     def __init__(self, x: int, y: int, dir: int):
         super().__init__()
         self.Xpos = x
         self.Ypos = y
-        self.x = x * SIZE
-        self.y = y * SIZE
+
+        self.x = self.Xpos * SIZE
+        self.y = self.Ypos * SIZE
         self.dir = dir
 
     def draw(self, color=C_WHITE):
@@ -46,13 +50,25 @@ class Segment:
         self.Xpos = self.x//SIZE
         self.Ypos = self.y//SIZE
         if self.dir == UP:
-            self.y -= SIZE
-        elif self.dir == LEFT:
-            self.x -= SIZE
+            if self.Ypos>0:
+                self.y -= SIZE
+            else:
+                self.y = maxY*SIZE
         elif self.dir == DOWN:
-            self.y += SIZE
+            if self.Ypos<maxY:
+                self.y += SIZE
+            else:
+                self.y = 0
+        elif self.dir == LEFT:
+            if self.Xpos>0:
+                self.x -= SIZE
+            else:
+                self.x = maxX*SIZE
         elif self.dir == RIGHT:
-            self.x += SIZE
+            if self.Xpos<maxX:
+                self.x += SIZE
+            else:
+                self.x = 0
         else:
             None
 
@@ -66,14 +82,13 @@ class Snake:
         self.head = self.segments[0]
         self.tail = self.segments[-1]
         self.readyToAddSegment = True
-        self.lockedHeadX = None
-        self.lockedHeadY = None
+        self.lockedHeadX = None #dopóki się nie zmieni nie można dodawać nowych segmentów
+        self.lockedHeadY = None #dopóki się nie zmieni nie można dodawać nowych segmentów
 
 
     def addSegment(self):
         last = self.segments[-1]
         direction = last.dir
-        # maxX = 23, maxY=15
         x : int = last.x//SIZE
         y : int = last.y//SIZE
         print("X: ", x, " Y: ", y, " || DIR= ", direction)
@@ -104,14 +119,14 @@ class Snake:
 
     def drawAndUpdate(self, dir: int):
         for seg in self.segments:
-            self.deleteLockInFlag()
             seg.draw()
             seg.update()
             seg.dir, dir = dir, seg.dir
             self.tail = self.segments[-1]
             self.head = self.segments[0]
-            if self.readyToAddSegment:
-                self.detectFood()
+        self.deleteLockInFlag()
+        if self.readyToAddSegment:
+            self.detectFood()
 
 # Food
 class Food:
