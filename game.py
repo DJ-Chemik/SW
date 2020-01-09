@@ -12,6 +12,7 @@ GAME_SPEED = 10
 
 # colors
 C_BLACK = (0, 0, 0)
+C_GRAY = (180, 180, 180)
 C_RED = (255, 0, 0)
 C_GREEN = (0, 255, 0)
 C_BLUE = (0, 0, 255)
@@ -32,7 +33,7 @@ X_SIZE = WID / SIZE
 Y_SIZE = HEI / SIZE
 
 maxX = 23
-maxY=15
+maxY = 15
 
 # One snake segment
 class Segment:
@@ -127,7 +128,10 @@ class Snake:
 
     def drawAndUpdate(self, dir: int):
         for seg in self.segments:
-            seg.draw()
+            if seg==self.head:
+                seg.draw(C_WHITE)
+            else:
+                seg.draw(C_GRAY)
             seg.update()
             seg.dir, dir = dir, seg.dir
             self.tail = self.segments[-1]
@@ -141,13 +145,30 @@ class Snake:
 class Food:
     def __init__(self):
         super().__init__()
-        self.xPosition = random.randint(0,23)
-        self.yPosition = random.randint(0,15)
+        self.xPosition = random.randint(0,maxX)
+        self.yPosition = random.randint(0,maxY)
         self.segments = [Segment(self.xPosition, self.yPosition, None)]
+
 
     def drawAndUpdate(self):
         for seg in self.segments:
             seg.draw(C_RED)
+
+def addFoodInRandomPositionAndTime():
+    maxFoodsInGameBoard = 6
+    actualFoodsInGameBoard = len(foods)
+    randomParameter = 30
+
+    if actualFoodsInGameBoard < maxFoodsInGameBoard:
+        print(actualFoodsInGameBoard)
+        #Add one food if board is empty
+        if actualFoodsInGameBoard == 0:
+            foods.append(Food())
+        #Add next food to board sometimes
+        if random.randint(0, randomParameter) == 1:
+            foods.append(Food())
+
+
 
 # Events handling
 def input(events):
@@ -170,8 +191,6 @@ def input(events):
                     cur_dir = RIGHT
             elif event.key == ADD_SEGMENT_TO_SNAKE:
                 snake.addSegment()
-            elif event.key == ADD_NEW_FOOD:
-                foods.append(Food())
 
 def drawGameWindow():
     window.fill(C_BLACK)
@@ -205,6 +224,7 @@ continueGame = True
 # Main loop
 while continueGame:
     input(pygame.event.get())
+    addFoodInRandomPositionAndTime()
     drawGameWindow()
     clock.tick(GAME_SPEED)
 
