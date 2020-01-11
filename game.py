@@ -8,7 +8,7 @@ from pygame.locals import *
 WID = 480
 HEI = 320
 SIZE = 20
-GAME_SPEED = 10
+GAME_FPS = 16
 
 # colors
 C_BLACK = (0, 0, 0)
@@ -17,6 +17,12 @@ C_RED = (255, 0, 0)
 C_GREEN = (0, 255, 0)
 C_BLUE = (0, 0, 255)
 C_WHITE = (255, 255, 255)
+
+# buttons
+A = 0
+B = 1
+X = 2
+Y = 3
 
 # directions
 UP, LEFT, DOWN, RIGHT = 0, 1, 2, 3
@@ -113,6 +119,7 @@ class Snake:
                 continueGame=False
 
     def detectFood(self):
+        global score
         for food in foods:
             if self.head.Xpos == food.xPosition and self.head.Ypos == food.yPosition:
                 self.addSegment()
@@ -120,6 +127,7 @@ class Snake:
                 self.lockedHeadX = self.head.Xpos #Dopiero gdy to przestanie być prawdziwe będzie mogła zostać zdjęta blokada
                 self.lockedHeadY = self.head.Ypos #czyli gdy snake przemieści się o 1 pole
                 self.readyToAddSegment = False #Założenie blokady
+                score += 1
 
     def deleteLockInFlag(self):
         if self.head.Xpos != self.lockedHeadX:
@@ -155,7 +163,7 @@ class Food:
             seg.draw(C_RED)
 
 def addFoodInRandomPositionAndTime():
-    maxFoodsInGameBoard = 6
+    maxFoodsInGameBoard = 2
     actualFoodsInGameBoard = len(foods)
     randomParameter = 30
 
@@ -171,7 +179,7 @@ def addFoodInRandomPositionAndTime():
 
 
 # Events handling
-def input(events):
+def handleEvents(events):
     global cur_dir
     for event in events:
         if event.type == QUIT:
@@ -191,12 +199,27 @@ def input(events):
                     cur_dir = RIGHT
             elif event.key == ADD_SEGMENT_TO_SNAKE:
                 snake.addSegment()
+        elif event.type == pygame.JOYBUTTONDOWN:
+            if event.button == Y: # up
+                if cur_dir != DOWN:
+                    cur_dir = UP
+            elif event.button == X: # left
+                if cur_dir != RIGHT:
+                    cur_dir = LEFT
+            elif event.button == A: # down
+                if cur_dir != UP:
+                    cur_dir = DOWN
+            elif event.button == B: # right
+                if cur_dir != LEFT:
+                    cur_dir = RIGHT
 
 def drawGameWindow():
     window.fill(C_BLACK)
     for food in foods:
         food.drawAndUpdate()
     snake.drawAndUpdate(cur_dir)
+    scoretext = font.render("Score {0}".format(score), 1, C_WHITE)
+    window.blit(scoretext, (5, 10))
     pygame.display.update()
 
 def displayMessageBox(subject, content):
@@ -212,19 +235,26 @@ def displayMessageBox(subject, content):
 # MAIN
 pygame.init()
 window = pygame.display.set_mode((WID, HEI))
-clock = pygame.time.Clock()
 pygame.display.set_caption('Snake')
+
+# joystick handler
+if pygame.joystick.get_count() > 0:
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+
+# font for score
+font = pygame.font.SysFont("", 30)
 
 snake = Snake()
 cur_dir = LEFT
+score = 0
 foods = []
 
 continueGame = True
 
 # Main loop
 while continueGame:
-    input(pygame.event.get())
+    handleEvents(pygame.event.get())
     addFoodInRandomPositionAndTime()
     drawGameWindow()
-    clock.tick(GAME_SPEED)
-
+    pygame.time.wait(1000//GAME_FPS)
