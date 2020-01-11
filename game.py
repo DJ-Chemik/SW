@@ -1,5 +1,7 @@
 import random
 import pygame, sys, os, time
+import tkinter as tk
+from tkinter import messagebox
 from pygame.locals import *
 
 # window params
@@ -10,6 +12,7 @@ GAME_SPEED = 10
 
 # colors
 C_BLACK = (0, 0, 0)
+C_GRAY = (180, 180, 180)
 C_RED = (255, 0, 0)
 C_GREEN = (0, 255, 0)
 C_BLUE = (0, 0, 255)
@@ -30,7 +33,7 @@ X_SIZE = WID / SIZE
 Y_SIZE = HEI / SIZE
 
 maxX = 23
-maxY=15
+maxY = 15
 
 # One snake segment
 class Segment:
@@ -102,6 +105,12 @@ class Snake:
         elif direction == DOWN:
             self.segments.append(Segment(x, y-1, direction))
 
+    def detectCollision(self):
+        for seg in self.segments:
+            if self.head.Xpos==seg.Xpos and self.head.Ypos==seg.Ypos and seg!=self.segments[0]:
+                displayMessageBox("Game Over", "You hit in your own tail :( Mission Failed Bro!")
+                global continueGame
+                continueGame=False
 
     def detectFood(self):
         for food in foods:
@@ -119,12 +128,16 @@ class Snake:
 
     def drawAndUpdate(self, dir: int):
         for seg in self.segments:
-            seg.draw()
+            if seg==self.head:
+                seg.draw(C_WHITE)
+            else:
+                seg.draw(C_GRAY)
             seg.update()
             seg.dir, dir = dir, seg.dir
             self.tail = self.segments[-1]
             self.head = self.segments[0]
         self.deleteLockInFlag()
+        self.detectCollision()
         if self.readyToAddSegment:
             self.detectFood()
 
@@ -132,13 +145,30 @@ class Snake:
 class Food:
     def __init__(self):
         super().__init__()
-        self.xPosition = random.randint(0,23)
-        self.yPosition = random.randint(0,15)
+        self.xPosition = random.randint(0,maxX)
+        self.yPosition = random.randint(0,maxY)
         self.segments = [Segment(self.xPosition, self.yPosition, None)]
+
 
     def drawAndUpdate(self):
         for seg in self.segments:
             seg.draw(C_RED)
+
+def addFoodInRandomPositionAndTime():
+    maxFoodsInGameBoard = 6
+    actualFoodsInGameBoard = len(foods)
+    randomParameter = 30
+
+    if actualFoodsInGameBoard < maxFoodsInGameBoard:
+        print(actualFoodsInGameBoard)
+        #Add one food if board is empty
+        if actualFoodsInGameBoard == 0:
+            foods.append(Food())
+        #Add next food to board sometimes
+        if random.randint(0, randomParameter) == 1:
+            foods.append(Food())
+
+
 
 # Events handling
 def input(events):
@@ -161,8 +191,6 @@ def input(events):
                     cur_dir = RIGHT
             elif event.key == ADD_SEGMENT_TO_SNAKE:
                 snake.addSegment()
-            elif event.key == ADD_NEW_FOOD:
-                foods.append(Food())
 
 def drawGameWindow():
     window.fill(C_BLACK)
@@ -170,6 +198,16 @@ def drawGameWindow():
         food.drawAndUpdate()
     snake.drawAndUpdate(cur_dir)
     pygame.display.update()
+
+def displayMessageBox(subject, content):
+    root = tk.Tk()
+    root.attributes("-topmost", True)
+    root.withdraw()
+    messagebox.showinfo(subject, content)
+    try:
+        root.destroy()
+    except:
+        pass
 
 # MAIN
 pygame.init()
@@ -181,9 +219,12 @@ snake = Snake()
 cur_dir = LEFT
 foods = []
 
+continueGame = True
+
 # Main loop
-while True:
+while continueGame:
     input(pygame.event.get())
+    addFoodInRandomPositionAndTime()
     drawGameWindow()
     clock.tick(GAME_SPEED)
 
