@@ -23,6 +23,8 @@ A = 0
 B = 1
 X = 2
 Y = 3
+BACK = 6
+START = 7
 
 # directions
 UP, LEFT, DOWN, RIGHT = 0, 1, 2, 3
@@ -32,6 +34,8 @@ SNAKE_UP = K_UP
 SNAKE_DOWN = K_DOWN
 SNAKE_LEFT = K_LEFT
 SNAKE_RIGHT = K_RIGHT
+NEW_GAME = K_RETURN
+EXIT_GAME = K_ESCAPE
 ADD_SEGMENT_TO_SNAKE = K_SPACE
 ADD_NEW_FOOD = K_c
 
@@ -114,9 +118,36 @@ class Snake:
     def detectCollision(self):
         for seg in self.segments:
             if self.head.Xpos==seg.Xpos and self.head.Ypos==seg.Ypos and seg!=self.segments[0]:
-                displayMessageBox("Game Over", "You hit in your own tail :( Mission Failed Bro!")
-                global continueGame
-                continueGame=False
+                gameover = font.render("GAME OVER", False, C_WHITE)
+                window.blit(gameover, (WID//3, HEI//3))
+                gameover = font.render("press enter/start to new game", False, C_RED)
+                window.blit(gameover, (WID//4.5, HEI//2))
+                gameover = font.render("press escape/back to exit game", False, C_RED)
+                window.blit(gameover, (WID//4.5, HEI//1.5))
+
+                scoretext = font.render("Score {0}".format(score), 1, C_WHITE)
+                window.blit(scoretext, (5, 10))
+                pygame.display.update()
+
+                waiting = True
+                while waiting:
+                    pygame.time.wait(1000//GAME_FPS)
+
+                    for event in pygame.event.get():
+                        if event.type == QUIT:
+                            sys.exit(0)
+                        elif event.type == KEYDOWN:
+                            if event.key == NEW_GAME:
+                                waiting = False
+                            elif event.key == EXIT_GAME:
+                                sys.exit(0)
+                        elif event.type == pygame.JOYBUTTONDOWN:
+                            if event.button == START: 
+                                waiting = False
+                            elif event.button == BACK:
+                                sys.exit(0)
+                
+                newGame()
 
     def detectFood(self):
         global score
@@ -168,7 +199,7 @@ def addFoodInRandomPositionAndTime():
     randomParameter = 30
 
     if actualFoodsInGameBoard < maxFoodsInGameBoard:
-        print(actualFoodsInGameBoard)
+        # print(actualFoodsInGameBoard)
         #Add one food if board is empty
         if actualFoodsInGameBoard == 0:
             foods.append(Food())
@@ -185,7 +216,11 @@ def handleEvents(events):
         if event.type == QUIT:
             sys.exit(0)
         elif event.type == KEYDOWN:
-            if event.key == SNAKE_UP:
+            if event.key == NEW_GAME:
+                newGame()
+            elif event.key == EXIT_GAME:
+                sys.exit(0)
+            elif event.key == SNAKE_UP:
                 if cur_dir != DOWN:
                     cur_dir = UP
             elif event.key == SNAKE_LEFT:
@@ -200,7 +235,11 @@ def handleEvents(events):
             elif event.key == ADD_SEGMENT_TO_SNAKE:
                 snake.addSegment()
         elif event.type == pygame.JOYBUTTONDOWN:
-            if event.button == Y: # up
+            if event.button == START: 
+                newGame()
+            elif event.button == BACK:
+                sys.exit(0)
+            elif event.button == Y: # up
                 if cur_dir != DOWN:
                     cur_dir = UP
             elif event.button == X: # left
@@ -232,6 +271,25 @@ def displayMessageBox(subject, content):
     except:
         pass
 
+def newGame():
+    global snake
+    snake = Snake()
+    global cur_dir
+    cur_dir = LEFT
+    global score
+    score = 0
+    global foods
+    foods = []
+    mainLoop()
+
+def mainLoop():
+    while True:
+        handleEvents(pygame.event.get())
+        addFoodInRandomPositionAndTime()
+        drawGameWindow()
+        pygame.time.wait(1000//GAME_FPS)
+
+
 # MAIN
 pygame.init()
 window = pygame.display.set_mode((WID, HEI))
@@ -245,16 +303,4 @@ if pygame.joystick.get_count() > 0:
 # font for score
 font = pygame.font.SysFont("", 30)
 
-snake = Snake()
-cur_dir = LEFT
-score = 0
-foods = []
-
-continueGame = True
-
-# Main loop
-while continueGame:
-    handleEvents(pygame.event.get())
-    addFoodInRandomPositionAndTime()
-    drawGameWindow()
-    pygame.time.wait(1000//GAME_FPS)
+newGame()
