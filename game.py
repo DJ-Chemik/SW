@@ -5,10 +5,14 @@ from tkinter import messagebox
 from pygame.locals import *
 
 # window params
-WID = 480
-HEI = 320
+maxX = 23
+maxY = 14
 SIZE = 20
-GAME_FPS = 16
+WID = (maxX+1)*SIZE
+HEI = (maxY+1)*SIZE
+
+
+GAME_FPS = 20
 
 # colors
 C_BLACK = (0, 0, 0)
@@ -41,9 +45,6 @@ ADD_NEW_FOOD = K_c
 
 X_SIZE = WID / SIZE
 Y_SIZE = HEI / SIZE
-
-maxX = 23
-maxY = 15
 
 # One snake segment
 class Segment:
@@ -194,7 +195,7 @@ class Food:
             seg.draw(C_RED)
 
 def addFoodInRandomPositionAndTime():
-    maxFoodsInGameBoard = 2
+    maxFoodsInGameBoard = 1
     actualFoodsInGameBoard = len(foods)
     randomParameter = 30
 
@@ -204,8 +205,8 @@ def addFoodInRandomPositionAndTime():
         if actualFoodsInGameBoard == 0:
             foods.append(Food())
         #Add next food to board sometimes
-        if random.randint(0, randomParameter) == 1:
-            foods.append(Food())
+        #if random.randint(0, randomParameter) == 1:
+        #    foods.append(Food())
 
 
 
