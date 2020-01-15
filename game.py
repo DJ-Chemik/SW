@@ -6,13 +6,13 @@ from pygame.locals import *
 
 # window params
 maxX = 23
-maxY = 14
+maxY = 13
 SIZE = 20
 WID = (maxX+1)*SIZE
 HEI = (maxY+1)*SIZE
 
 
-GAME_FPS = 20
+GAME_FPS = 24
 
 # colors
 C_BLACK = (0, 0, 0)
@@ -172,8 +172,8 @@ class Snake:
                 seg.draw(C_WHITE)
             else:
                 seg.draw(C_GRAY)
-            seg.update()
             seg.dir, dir = dir, seg.dir
+            seg.update()
             self.tail = self.segments[-1]
             self.head = self.segments[0]
         self.deleteLockInFlag()
@@ -252,6 +252,8 @@ def handleEvents(events):
             elif event.button == B: # right
                 if cur_dir != LEFT:
                     cur_dir = RIGHT
+            elif event.button == 4:
+                snake.addSegment()
 
 def drawGameWindow():
     window.fill(C_BLACK)
