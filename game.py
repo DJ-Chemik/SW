@@ -99,7 +99,6 @@ class Snake:
         self.lockedHeadX = None #dopóki się nie zmieni nie można dodawać nowych segmentów
         self.lockedHeadY = None #dopóki się nie zmieni nie można dodawać nowych segmentów
 
-
     def addSegment(self):
         last = self.segments[-1]
         direction = last.dir
@@ -162,9 +161,8 @@ class Snake:
                 score += 1
 
     def deleteLockInFlag(self):
-        if self.head.Xpos != self.lockedHeadX:
-            if self.head.Ypos != self.lockedHeadY:
-                self.readyToAddSegment = True
+        if self.head.Xpos != self.lockedHeadX or self.head.Ypos != self.lockedHeadY:    
+            self.readyToAddSegment = True
 
     def drawAndUpdate(self, dir: int):
         for seg in self.segments:
@@ -189,24 +187,22 @@ class Food:
         self.yPosition = random.randint(0,maxY)
         self.segments = [Segment(self.xPosition, self.yPosition, None)]
 
-
     def drawAndUpdate(self):
         for seg in self.segments:
             seg.draw(C_RED)
 
 def addFoodInRandomPositionAndTime():
-    maxFoodsInGameBoard = 1
+    maxFoodsInGameBoard = 6
     actualFoodsInGameBoard = len(foods)
     randomParameter = 30
 
     if actualFoodsInGameBoard < maxFoodsInGameBoard:
-        # print(actualFoodsInGameBoard)
         #Add one food if board is empty
         if actualFoodsInGameBoard == 0:
             foods.append(Food())
         #Add next food to board sometimes
-        #if random.randint(0, randomParameter) == 1:
-        #    foods.append(Food())
+        if random.randint(0, randomParameter) == 1:
+            foods.append(Food())
 
 
 
